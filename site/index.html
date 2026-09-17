@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mainpage — статус</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --text: #1d1d1f;
+  --border: rgba(0, 0, 0, .14);
+  --accent: #0a84ff;
+  --item-h: 40px;
+  --radius: 8px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1e1e1e;
+    --text: #f5f5f7;
+    --border: rgba(255, 255, 255, .16);
+  }
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.page {
+  min-height: 100%;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 24px;
+  padding: 24px;
+}
+.wheel {
+  position: relative;
+  width: min(320px, 80vw);
+  height: calc(var(--item-h) * 5);
+  overflow: hidden;
+  border-radius: var(--radius);
+  cursor: grab;
+  touch-action: none;
+  outline: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+}
+.wheel:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
+.wheel:active { cursor: grabbing; }
+.wheel__frame {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  right: 12px;
+  height: var(--item-h);
+  transform: translateY(-50%);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  pointer-events: none;
+}
+.wheel__item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--item-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 500;
+  white-space: nowrap;
+  will-change: transform, opacity;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.readout { margin: 0; font-size: 14px; opacity: .6; }
+.readout strong { font-weight: 600; }
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="wheel" id="wheel" role="listbox" tabindex="0" aria-label="Мой статус">
+    <div id="wheelList"></div>
+    <div class="wheel__frame" aria-hidden="true"></div>
+  </div>
+  <p class="readout">Статус: <strong id="statusValue">—</strong></p>
+</main>
+<script>
+(() => {
+  const STATUSES = ['из дома', 'в офисе', 'в отпуске'];
+  const ITEM_H = 40;
+  const COUNT = 27;
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const wheelEl = document.getElementById('wheel');
+  const listEl = document.getElementById('wheelList');
+  const statusEl = document.getElementById('statusValue');
+  const center = (ITEM_H * 5) / 2;
+
+  const items = [];
+  for (let i = 0; i < COUNT; i++) {
+    const el = document.createElement('div');
+    el.className = 'wheel__item';
+    el.id = 'opt-' + i;
+    el.setAttribute('role', 'option');
+    el.textContent = STATUSES[i % 3];
+    listEl.appendChild(el);
+    items.push(el);
+  }
+
+  const TOTAL = COUNT * ITEM_H;
+  const mod = (n, m) => ((n % m) + m) % m;
+
+  let pos = 0;
+  let rafId = null;
+  let snapTimer = null;
+  let selected = -1;
+
+  function render() {
+    const offset = mod(pos, TOTAL);
+    let activeId = null;
+    for (let i = 0; i < COUNT; i++) {
+      let y = i * ITEM_H - offset;
+      while (y < center - TOTAL / 2) y += TOTAL;
+      while (y > center + TOTAL / 2) y -= TOTAL;
+      const d = (y - center) / ITEM_H;
+      const ad = Math.abs(d);
+      const s = 0.45 + 0.55 * Math.max(0, 1 - ad * 0.62);
+      const o = 1 - Math.min(1, ad / 2.6) * 0.72;
+      const el = items[i];
+      el.style.transform = `translate3d(0, ${y}px, 0) scale(${s.toFixed(3)})`;
+      el.style.opacity = o.toFixed(3);
+      if (ad < 0.5) activeId = i;
+    }
+    const sel = mod(Math.round(pos / ITEM_H), 3);
+    if (sel !== selected) {
+      selected = sel;
+      items.forEach((el, i) => {
+        el.setAttribute('aria-selected', mod(i, 3) === sel ? 'true' : 'false');
+      });
+      statusEl.textContent = STATUSES[sel];
+    }
+    if (activeId !== null) {
+      wheelEl.setAttribute('aria-activedescendant', 'opt-' + activeId);
+    }
+  }
+
+  function animateTo(target) {
+    cancelAnimationFrame(rafId);
+    if (REDUCED) { pos = target; render(); return; }
+    const from = pos;
+    const dist = target - from;
+    const t0 = performance.now();
+    const dur = Math.min(320, 140 + Math.abs(dist) * 0.5);
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / dur);
+      const e = 1 - Math.pow(1 - k, 3);
+      pos = from + dist * e;
+      render();
+      if (k < 1) rafId = requestAnimationFrame(step);
+    };
+    rafId = requestAnimationFrame(step);
+  }
+
+  function snap() {
+    animateTo(Math.round(pos / ITEM_H) * ITEM_H);
+  }
+
+  function scheduleSnap() {
+    clearTimeout(snapTimer);
+    snapTimer = setTimeout(snap, 130);
+  }
+
+  function go(deltaRows) {
+    animateTo((Math.round(pos / ITEM_H) + deltaRows) * ITEM_H);
+  }
+
+  wheelEl.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    cancelAnimationFrame(rafId);
+    pos += e.deltaMode === 1 ? e.deltaY * ITEM_H : e.deltaY;
+    render();
+    scheduleSnap();
+  }, { passive: false });
+
+  let dragging = false, lastY = 0, lastT = 0, vel = 0, moved = 0;
+  wheelEl.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    moved = 0;
+    vel = 0;
+    lastY = e.clientY;
+    lastT = performance.now();
+    cancelAnimationFrame(rafId);
+    wheelEl.setPointerCapture(e.pointerId);
+  });
+  wheelEl.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const t = performance.now();
+    const dy = e.clientY - lastY;
+    pos += dy;
+    moved += Math.abs(dy);
+    vel = dy / Math.max(1, t - lastT);
+    lastY = e.clientY;
+    lastT = t;
+    render();
+  });
+  const endDrag = () => {
+    if (!dragging) return;
+    dragging = false;
+    if (moved < 4) return;
+    const glide = () => {
+      vel *= 0.93;
+      if (Math.abs(vel) < 0.02) { snap(); return; }
+      pos += vel * 16;
+      render();
+      rafId = requestAnimationFrame(glide);
+    };
+    rafId = requestAnimationFrame(glide);
+  };
+  wheelEl.addEventListener('pointerup', endDrag);
+  wheelEl.addEventListener('pointercancel', endDrag);
+
+  listEl.addEventListener('click', (e) => {
+    if (moved >= 4) return;
+    const idx = items.indexOf(e.target);
+    if (idx === -1) return;
+    const d = mod(mod(idx, 3) - selected, 3);
+    if (d !== 0) go(d === 2 ? -1 : d);
+  });
+
+  wheelEl.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); go(1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); go(-1); }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
