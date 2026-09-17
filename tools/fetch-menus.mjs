@@ -97,7 +97,7 @@ async function main() {
         }
         files.push(`assets/menus/${source.id}/${file}`);
       }
-      places.push({ id: source.id, name, photos: files });
+      places.push({ id: source.id, name, link: source.link ?? null, photos: files });
       console.log(`OK ${source.id}: «${name}» — ${files.length} файлов`);
     } catch (e) {
       failed++;

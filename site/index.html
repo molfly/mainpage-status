@@ -98,6 +98,9 @@ body {
   align-items: start;
 }
 .menus__place { font-size: 16px; font-weight: 600; margin: 0 0 12px; }
+.menus__place a { color: inherit; text-decoration: none; }
+.menus__place a:hover { text-decoration: underline; }
+.menus__place a::after { content: " ↗"; font-size: 12px; opacity: .5; }
 .menus__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -305,7 +308,16 @@ body {
     for (const place of menusData.places) {
       const h = document.createElement('h3');
       h.className = 'menus__place';
-      h.textContent = place.name;
+      if (place.link) {
+        const a = document.createElement('a');
+        a.href = place.link;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = place.name;
+        h.appendChild(a);
+      } else {
+        h.textContent = place.name;
+      }
       const grid = document.createElement('div');
       grid.className = 'menus__grid';
       place.photos.forEach((src, i) => {

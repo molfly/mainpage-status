@@ -1,14 +1,16 @@
 [
   {
     "id": "place-1",
-    "name": "Столовая 1",
+    "name": "Georgia Armenia",
+    "link": "https://georgiaarmenia.ru/",
     "vk_album": "https://vk.ru/album-198759472_290707569",
     "photos": ["docs/CLrftRfm9_ZoT12wyfQRz0wBlUIyow_aR7c6iJxdQiN_PPq1axDDl91sAPvRroztnz3MPfQAWjUR1BR_rBuyRTNT.jpg"],
-    "note": "первое место; заметка docs/1.txt. Локальный jpg до появления VK_TOKEN: удалить photos — источник переключится на vk_album"
+    "note": "заметка docs/1.txt. Локальный jpg до появления VK_TOKEN: удалить photos — источник переключится на vk_album"
   },
   {
     "id": "lenina",
-    "name": "Ленина",
+    "name": "Два деда Фазенда",
+    "link": "https://fazenda.dvadeda.ru/",
     "photos": ["docs/Ленина обеды (9).pdf"]
   }
 ]
