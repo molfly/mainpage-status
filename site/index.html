@@ -32,6 +32,11 @@ body {
 }
 .page {
   min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.page__center {
+  flex: 1;
   display: grid;
   place-content: center;
   justify-items: center;
@@ -81,16 +86,50 @@ body {
 }
 .readout { margin: 0; font-size: 14px; opacity: .6; }
 .readout strong { font-weight: 600; }
+.menus {
+  width: min(880px, 100%);
+  margin: 0 auto;
+  padding: 0 24px 48px;
+}
+.menus__title { font-size: 20px; font-weight: 600; margin: 0 0 16px; }
+.menus__place { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+.menus__place:first-child { margin-top: 0; }
+.menus__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+.menus__grid img {
+  display: block;
+  width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.menus-empty {
+  width: min(880px, 100%);
+  margin: 0 auto;
+  padding: 0 24px 48px;
+  font-size: 14px;
+  opacity: .6;
+}
 </style>
 </head>
 <body>
 <main class="page">
-  <div class="wheel" id="wheel" role="listbox" tabindex="0" aria-label="Мой статус">
-    <div id="wheelList"></div>
-    <div class="wheel__frame" aria-hidden="true"></div>
+  <div class="page__center">
+    <div class="wheel" id="wheel" role="listbox" tabindex="0" aria-label="Мой статус">
+      <div id="wheelList"></div>
+      <div class="wheel__frame" aria-hidden="true"></div>
+    </div>
+    <p class="readout">Статус: <strong id="statusValue">—</strong></p>
   </div>
-  <p class="readout">Статус: <strong id="statusValue">—</strong></p>
+  <section class="menus" id="menus" hidden>
+    <h2 class="menus__title">Меню</h2>
+    <div id="menusList"></div>
+  </section>
+  <p class="menus-empty" id="menusEmpty" hidden>Меню появится после сборки: <code>node tools/fetch-menus.mjs</code></p>
 </main>
+<script src="data/menus.js"></script>
 <script>
 (() => {
   const STATUSES = ['из дома', 'в офисе', 'в отпуске'];
@@ -240,6 +279,37 @@ body {
   });
 
   render();
+
+  // Меню (данные собирает tools/fetch-menus.mjs → data/menus.js → window.MENUS)
+  const menusData = window.MENUS;
+  const menusSection = document.getElementById('menus');
+  const menusList = document.getElementById('menusList');
+  const menusEmpty = document.getElementById('menusEmpty');
+  if (menusData && Array.isArray(menusData.places) && menusData.places.length) {
+    for (const place of menusData.places) {
+      const h = document.createElement('h3');
+      h.className = 'menus__place';
+      h.textContent = place.name;
+      const grid = document.createElement('div');
+      grid.className = 'menus__grid';
+      place.photos.forEach((src, i) => {
+        const a = document.createElement('a');
+        a.href = src;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        const img = document.createElement('img');
+        img.src = src;
+        img.loading = 'lazy';
+        img.alt = `Меню: ${place.name}, фото ${i + 1}`;
+        a.appendChild(img);
+        grid.appendChild(a);
+      });
+      menusList.append(h, grid);
+    }
+    menusSection.hidden = false;
+  } else {
+    menusEmpty.hidden = false;
+  }
 })();
 </script>
 </body>
