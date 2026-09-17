@@ -159,7 +159,7 @@ body {
   const wheelEl = document.getElementById('wheel');
   const listEl = document.getElementById('wheelList');
   const statusEl = document.getElementById('statusValue');
-  const center = (ITEM_H * 5) / 2;
+  const frame = (ITEM_H * 5) / 2 - ITEM_H / 2; // верх строки выбора
 
   const items = [];
   for (let i = 0; i < COUNT; i++) {
@@ -184,10 +184,10 @@ body {
     const offset = mod(pos, TOTAL);
     let activeId = null;
     for (let i = 0; i < COUNT; i++) {
-      let y = i * ITEM_H - offset;
-      while (y < center - TOTAL / 2) y += TOTAL;
-      while (y > center + TOTAL / 2) y -= TOTAL;
-      const d = (y - center) / ITEM_H;
+      let y = i * ITEM_H - offset + frame;
+      while (y < frame - TOTAL / 2) y += TOTAL;
+      while (y > frame + TOTAL / 2) y -= TOTAL;
+      const d = (y - frame) / ITEM_H;
       const ad = Math.abs(d);
       const s = 0.45 + 0.55 * Math.max(0, 1 - ad * 0.62);
       const o = 1 - Math.min(1, ad / 2.6) * 0.72;
