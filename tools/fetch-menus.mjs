@@ -85,14 +85,20 @@ async function main() {
       await fs.mkdir(dir, { recursive: true });
 
       const files = [];
-      for (const [i, url] of photos.entries()) {
-        const ext = (path.extname(new URL(url).pathname) || '.jpg').slice(0, 5);
+      for (const [i, src] of photos.entries()) {
+        const isUrl = /^https?:\/\//i.test(src);
+        const ext = (path.extname(isUrl ? new URL(src).pathname : src) || '.jpg').toLowerCase().slice(0, 5);
         const file = `${String(i + 1).padStart(2, '0')}${ext}`;
-        await fs.writeFile(path.join(dir, file), await fetchBuf(url));
+        const dest = path.join(dir, file);
+        if (isUrl) {
+          await fs.writeFile(dest, await fetchBuf(src));
+        } else {
+          await fs.copyFile(path.resolve(ROOT, src), dest);
+        }
         files.push(`assets/menus/${source.id}/${file}`);
       }
       places.push({ id: source.id, name, photos: files });
-      console.log(`OK ${source.id}: «${name}» — ${files.length} фото`);
+      console.log(`OK ${source.id}: «${name}» — ${files.length} файлов`);
     } catch (e) {
       failed++;
       console.error(`SKIP ${source.id}: ${e.message}`);

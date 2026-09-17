@@ -1,7 +1,14 @@
 [
   {
     "id": "place-1",
+    "name": "Столовая 1",
     "vk_album": "https://vk.ru/album-198759472_290707569",
-    "note": "первое место; исходная заметка в docs/1.txt"
+    "photos": ["docs/CLrftRfm9_ZoT12wyfQRz0wBlUIyow_aR7c6iJxdQiN_PPq1axDDl91sAPvRroztnz3MPfQAWjUR1BR_rBuyRTNT.jpg"],
+    "note": "первое место; заметка docs/1.txt. Локальный jpg до появления VK_TOKEN: удалить photos — источник переключится на vk_album"
+  },
+  {
+    "id": "lenina",
+    "name": "Ленина",
+    "photos": ["docs/Ленина обеды (9).pdf"]
   }
 ]

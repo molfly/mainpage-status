@@ -105,6 +105,18 @@ body {
   border-radius: var(--radius);
   border: 1px solid var(--border);
 }
+.menus__doc {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  text-decoration: none;
+  color: inherit;
+}
+.menus__doc:hover { background: rgba(127, 127, 127, .08); }
 .menus-empty {
   width: min(880px, 100%);
   margin: 0 auto;
@@ -297,11 +309,16 @@ body {
         a.href = src;
         a.target = '_blank';
         a.rel = 'noopener';
-        const img = document.createElement('img');
-        img.src = src;
-        img.loading = 'lazy';
-        img.alt = `Меню: ${place.name}, фото ${i + 1}`;
-        a.appendChild(img);
+        if (/\.pdf$/i.test(src)) {
+          a.className = 'menus__doc';
+          a.textContent = 'Открыть PDF';
+        } else {
+          const img = document.createElement('img');
+          img.src = src;
+          img.loading = 'lazy';
+          img.alt = `Меню: ${place.name}, фото ${i + 1}`;
+          a.appendChild(img);
+        }
         grid.appendChild(a);
       });
       menusList.append(h, grid);
